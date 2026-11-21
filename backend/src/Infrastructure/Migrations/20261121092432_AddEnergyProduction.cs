@@ -11,33 +11,22 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "energy_production",
-                columns: table => new
-                {
-                    installation_id = table.Column<int>(type: "integer", nullable: false),
-                    day = table.Column<DateOnly>(type: "date", nullable: false),
-                    actual_kwh = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    expected_kwh = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    health = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    reading_count = table.Column<int>(type: "integer", nullable: false),
-                    computed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_energy_production", x => new { x.installation_id, x.day });
-                    table.ForeignKey(
-                        name: "fk_energy_production_installations_installation_id",
-                        column: x => x.installation_id,
-                        principalTable: "installations",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_energy_production_day_health",
-                table: "energy_production",
-                columns: new[] { "day", "health" });
+            // Preserve production rows made by the previous local demo version when adopting this migration chain.
+            migrationBuilder.Sql("""
+                CREATE TABLE IF NOT EXISTS energy_production (
+                    installation_id integer NOT NULL,
+                    day date NOT NULL,
+                    actual_kwh numeric(10,2) NOT NULL,
+                    expected_kwh numeric(10,2) NOT NULL,
+                    health character varying(16) NOT NULL,
+                    reading_count integer NOT NULL,
+                    computed_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_energy_production PRIMARY KEY (installation_id, day),
+                    CONSTRAINT fk_energy_production_installations_installation_id
+                        FOREIGN KEY (installation_id) REFERENCES installations (id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS ix_energy_production_day_health ON energy_production (day, health);
+                """);
         }
 
         /// <inheritdoc />

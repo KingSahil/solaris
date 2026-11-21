@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react-swc';
-import { searchForWorkspaceRoot, type Plugin } from 'vite';
+import { loadEnv, searchForWorkspaceRoot, type Plugin, type ProxyOptions } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { headTags, NOT_FOUND, PAGES, pageFor } from './src/content/pages';
 
@@ -37,14 +37,29 @@ function pageHeads(): Plugin {
 
 const brand = fileURLToPath(new URL('../brand', import.meta.url));
 
-export default defineConfig({
-  plugins: [react(), pageHeads()],
-  server: {
-    // The tokens, fonts and logo live in ../brand, shared with the staff app.
-    fs: { allow: [searchForWorkspaceRoot(process.cwd()), brand] },
-  },
-  test: {
-    include: ['src/**/*.test.ts'],
-    environment: 'node',
-  },
+export default defineConfig(({ mode }) => {
+  const { API_PROXY_TARGET = 'http://localhost:5228' } = loadEnv(mode, process.cwd(), '');
+  const proxy: Record<string, ProxyOptions> = {
+    '/api': {
+      target: API_PROXY_TARGET,
+      configure: server => server.on('error', (_error, _request, response) => {
+        if ('writeHead' in response && !response.headersSent)
+          response.writeHead(502, { 'Content-Type': 'text/plain' }).end(`The API isn't answering at ${API_PROXY_TARGET}.`);
+      }),
+    },
+  };
+
+  return {
+    plugins: [react(), pageHeads()],
+    server: {
+      proxy,
+      // The tokens, fonts and logo live in ../brand, shared with the staff app.
+      fs: { allow: [searchForWorkspaceRoot(process.cwd()), brand] },
+    },
+    preview: { proxy },
+    test: {
+      include: ['src/**/*.test.ts'],
+      environment: 'node',
+    },
+  };
 });

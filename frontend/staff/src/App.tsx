@@ -17,12 +17,15 @@ import { NotificationsPage } from './notifications/NotificationsPage';
 import { SignInPage } from './signin/SignInPage';
 import { UserPage } from './users/UserPage';
 import { UsersPage } from './users/UsersPage';
+import { InstallationsPage } from './installations/InstallationsPage';
+import { ProductionPage } from './production/ProductionPage';
 
 const handle = (title: string): RouteHandle => ({ title });
 
 /** The screens built so far; the other sections show what they will hold. */
 const BUILT: Record<string, ReactNode> = {
-  '/leads': <LeadsPage />, '/customers': <CustomersPage />, '/notifications': <NotificationsPage />, '/users': <UsersPage />,
+  '/leads': <LeadsPage />, '/customers': <CustomersPage />, '/installations': <InstallationsPage />,
+  '/production': <ProductionPage />, '/notifications': <NotificationsPage />, '/users': <UsersPage />,
 };
 
 /** An installation's page comes with the installations; until then, what it will hold (a lead's and a customer's links reach it). */

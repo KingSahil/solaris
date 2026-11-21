@@ -156,6 +156,49 @@ namespace Infrastructure.Migrations
                     b.ToTable("customers", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.EnergyProduction", b =>
+                {
+                    b.Property<int>("InstallationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("installation_id");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date")
+                        .HasColumnName("day");
+
+                    b.Property<decimal>("ActualKwh")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("actual_kwh");
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("computed_at");
+
+                    b.Property<decimal>("ExpectedKwh")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("expected_kwh");
+
+                    b.Property<string>("Health")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("health");
+
+                    b.Property<int>("ReadingCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("reading_count");
+
+                    b.HasKey("InstallationId", "Day")
+                        .HasName("pk_energy_production");
+
+                    b.HasIndex("Day", "Health")
+                        .HasDatabaseName("ix_energy_production_day_health");
+
+                    b.ToTable("energy_production", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Installation", b =>
                 {
                     b.Property<int>("Id")
@@ -513,6 +556,18 @@ namespace Infrastructure.Migrations
                         .HasConstraintName("fk_customers_addresses_contact_address_id");
 
                     b.Navigation("ContactAddress");
+                });
+
+            modelBuilder.Entity("Domain.Entities.EnergyProduction", b =>
+                {
+                    b.HasOne("Domain.Entities.Installation", "Installation")
+                        .WithMany()
+                        .HasForeignKey("InstallationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_energy_production_installations_installation_id");
+
+                    b.Navigation("Installation");
                 });
 
             modelBuilder.Entity("Domain.Entities.Installation", b =>
